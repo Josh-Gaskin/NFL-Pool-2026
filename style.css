@@ -1,0 +1,494 @@
+@import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --turf: #0F2A20;
+  --turf-light: #17392C;
+  --turf-lighter: #1F4A38;
+  --chalk: #F0EDE2;
+  --chalk-dim: #B9C3B9;
+  --amber: #E8A33D;
+  --amber-dim: #B97A22;
+  --ink: #10120F;
+  --line: rgba(240, 237, 226, 0.14);
+  --win: #6FA97A;
+  --loss: #C4694F;
+  --tie: #C9B36B;
+  --radius: 3px;
+  --max-width: 980px;
+}
+
+* { box-sizing: border-box; }
+
+.hidden { display: none !important; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--turf);
+  color: var(--chalk);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    linear-gradient(var(--line) 1px, transparent 1px);
+  background-size: 100% 68px;
+  background-position: 0 96px;
+}
+
+.wrap {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 20px 80px;
+}
+
+/* ---------- Header ---------- */
+
+.masthead {
+  padding: 40px 0 28px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
+}
+
+.masthead-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.masthead h1 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 700;
+  font-size: clamp(2rem, 5vw, 3.1rem);
+  letter-spacing: 0.01em;
+  margin: 0;
+  line-height: 1;
+}
+
+.masthead .sub {
+  color: var(--chalk-dim);
+  font-size: 0.95rem;
+  margin-top: 8px;
+}
+
+.week-pill {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.1rem;
+  font-weight: 500;
+  background: var(--turf-lighter);
+  border: 1px solid var(--line);
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  color: var(--amber);
+  white-space: nowrap;
+}
+
+/* ---------- Scoreboard / standings ---------- */
+
+.scoreboard {
+  margin: 36px 0 44px;
+}
+
+.standing-row {
+  display: grid;
+  grid-template-columns: 44px 1fr auto 140px;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.standing-row:first-child { border-top: 1px solid var(--line); }
+
+.standing-rank {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.4rem;
+  color: var(--chalk-dim);
+}
+
+.standing-row.lead .standing-rank { color: var(--amber); }
+
+.standing-name {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.standing-record {
+  color: var(--chalk-dim);
+  font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.standing-points {
+  font-family: 'Oswald', sans-serif;
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--amber);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.standing-points span {
+  font-size: 0.95rem;
+  color: var(--chalk-dim);
+  font-family: 'Inter', sans-serif;
+  font-weight: 400;
+  margin-left: 6px;
+}
+
+/* ---------- Section headers ---------- */
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: 56px 0 18px;
+}
+
+.section-head h2 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.section-head .hint {
+  color: var(--chalk-dim);
+  font-size: 0.85rem;
+}
+
+/* ---------- Roster cards ---------- */
+
+.rosters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.roster-card {
+  background: var(--turf-light);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+
+.roster-card h3 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 1.05rem;
+  margin: 0 0 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+}
+
+.team-chip-list { display: flex; flex-direction: column; gap: 8px; }
+
+.team-chip {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.92rem;
+}
+
+.team-chip .abbr {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+}
+
+.team-chip .result-dots { display: flex; gap: 3px; }
+
+.dot { width: 7px; height: 7px; border-radius: 50%; }
+.dot.w { background: var(--win); }
+.dot.l { background: var(--loss); }
+.dot.t { background: var(--tie); }
+
+/* ---------- Unused pool ---------- */
+
+.unused-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.unused-chip {
+  font-family: 'Oswald', sans-serif;
+  font-size: 0.85rem;
+  border: 1px dashed var(--line);
+  color: var(--chalk-dim);
+  padding: 6px 12px;
+  border-radius: var(--radius);
+}
+
+/* ---------- Transaction ticker ---------- */
+
+.ticker {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 4px 0;
+}
+
+.ticker-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.92rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ticker-item:last-child { border-bottom: none; }
+
+.ticker-item .who { color: var(--chalk); }
+.ticker-item .meta { color: var(--chalk-dim); white-space: nowrap; }
+
+.empty-note {
+  color: var(--chalk-dim);
+  font-size: 0.9rem;
+  padding: 18px 0;
+}
+
+/* ---------- Footer ---------- */
+
+.site-footer {
+  margin-top: 64px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  color: var(--chalk-dim);
+  font-size: 0.82rem;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.site-footer a { color: var(--chalk-dim); }
+.site-footer a:hover { color: var(--amber); }
+
+/* ---------- Admin ---------- */
+
+.admin-card {
+  background: var(--turf-light);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.admin-card h2 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 1.15rem;
+  margin: 0 0 16px;
+}
+
+.field { margin-bottom: 14px; }
+
+.field label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--chalk-dim);
+  margin-bottom: 6px;
+}
+
+input, select, button {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.95rem;
+}
+
+input[type="text"], input[type="email"], input[type="password"], input[type="number"], select {
+  width: 100%;
+  background: var(--turf);
+  border: 1px solid var(--line);
+  color: var(--chalk);
+  padding: 10px 12px;
+  border-radius: var(--radius);
+}
+
+input:focus, select:focus, button:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+}
+
+button {
+  background: var(--amber);
+  color: var(--ink);
+  border: none;
+  padding: 10px 20px;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover { background: #f0b158; }
+button:disabled { background: var(--turf-lighter); color: var(--chalk-dim); cursor: not-allowed; }
+
+button.secondary {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--chalk);
+}
+button.secondary:hover { border-color: var(--amber); color: var(--amber); background: transparent; }
+
+button.danger { background: var(--loss); color: var(--chalk); }
+
+.row { display: flex; gap: 12px; flex-wrap: wrap; }
+.row > * { flex: 1; min-width: 160px; }
+
+.status-msg {
+  font-size: 0.88rem;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  margin-top: 12px;
+}
+.status-msg.ok { background: rgba(111,169,122,0.15); color: var(--win); }
+.status-msg.err { background: rgba(196,105,79,0.15); color: var(--loss); }
+
+.tx-remaining {
+  font-size: 0.82rem;
+  color: var(--chalk-dim);
+}
+
+table.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+table.admin-table th, table.admin-table td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--line);
+}
+table.admin-table th { color: var(--chalk-dim); font-weight: 500; }
+
+a.back-link {
+  color: var(--chalk-dim);
+  font-size: 0.85rem;
+  text-decoration: none;
+}
+a.back-link:hover { color: var(--amber); }
+
+/* ---------- Tabs ---------- */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--line);
+  margin-top: 8px;
+}
+
+.tab-btn {
+  background: none;
+  border: none;
+  color: var(--chalk-dim);
+  font-family: 'Oswald', sans-serif;
+  font-size: 1rem;
+  font-weight: 500;
+  padding: 12px 6px;
+  margin-right: 22px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+}
+
+.tab-btn:hover { color: var(--chalk); background: none; }
+
+.tab-btn.active {
+  color: var(--amber);
+  border-bottom-color: var(--amber);
+}
+
+.tab-panel.hidden { display: none; }
+
+/* ---------- Weekly results ---------- */
+
+.week-block {
+  margin-bottom: 34px;
+}
+
+.week-block-head {
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.05rem;
+  color: var(--amber);
+  margin-bottom: 10px;
+}
+
+.game-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95rem;
+}
+
+.game-team {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.game-team.right { flex-direction: row-reverse; text-align: right; }
+
+.game-team .owner-tag {
+  font-size: 0.75rem;
+  color: var(--chalk-dim);
+}
+
+.game-team.winner .name { color: var(--amber); font-weight: 600; }
+
+.game-score {
+  font-family: 'Oswald', sans-serif;
+  font-variant-numeric: tabular-nums;
+  color: var(--chalk-dim);
+  font-size: 0.85rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ---------- PIN pad ---------- */
+
+.pin-card {
+  max-width: 320px;
+  background: var(--turf-light);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  text-align: center;
+}
+
+.pin-card h2 {
+  font-family: 'Oswald', sans-serif;
+  font-weight: 500;
+  font-size: 1.1rem;
+  margin: 0 0 6px;
+}
+
+.pin-card p { color: var(--chalk-dim); font-size: 0.85rem; margin: 0 0 18px; }
+
+.pin-input {
+  width: 100%;
+  text-align: center;
+  font-family: 'Oswald', sans-serif;
+  font-size: 1.8rem;
+  letter-spacing: 0.5em;
+  padding: 12px 0 12px 0.5em;
+  background: var(--turf);
+  border: 1px solid var(--line);
+  color: var(--chalk);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+}
+
+.pin-card button { width: 100%; }
+
+@media (max-width: 640px) {
+  .standing-row { grid-template-columns: 32px 1fr auto; }
+  .standing-record { display: none; }
+}

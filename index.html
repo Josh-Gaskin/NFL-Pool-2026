@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Pool</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="masthead-row">
+      <h1>The Pool</h1>
+      <div class="week-pill" id="weekPill">Week —</div>
+    </div>
+    <div class="sub">5 owners. 5 teams each. 10 for a win, 5 for a tie. Whoever's got the most points when the season ends, wins.</div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Pool sections">
+    <button class="tab-btn active" id="tabBtnStandings" role="tab" aria-selected="true" aria-controls="panelStandings">Standings &amp; Teams</button>
+    <button class="tab-btn" id="tabBtnWeekly" role="tab" aria-selected="false" aria-controls="panelWeekly">Weekly Results</button>
+    <button class="tab-btn" id="tabBtnAdmin" role="tab" aria-selected="false" aria-controls="panelAdmin">Admin</button>
+  </nav>
+
+  <!-- ============ STANDINGS & TEAMS ============ -->
+  <section id="panelStandings" class="tab-panel" role="tabpanel" aria-labelledby="tabBtnStandings">
+
+    <section class="scoreboard" id="standings"></section>
+
+    <div class="section-head">
+      <h2>Rosters</h2>
+      <div class="hint" id="rosterHint"></div>
+    </div>
+    <div class="rosters" id="rosters"></div>
+
+    <div class="section-head">
+      <h2>Unused teams</h2>
+      <div class="hint">Available for a swap</div>
+    </div>
+    <div class="unused-pool" id="unusedPool"></div>
+
+    <div class="section-head">
+      <h2>Transactions</h2>
+      <div class="hint">Swaps &amp; trades this season</div>
+    </div>
+    <div class="ticker" id="ticker">
+      <div class="empty-note">No transactions yet.</div>
+    </div>
+
+  </section>
+
+  <!-- ============ WEEKLY RESULTS ============ -->
+  <section id="panelWeekly" class="tab-panel hidden" role="tabpanel" aria-labelledby="tabBtnWeekly">
+    <div class="section-head" style="margin-top:32px;">
+      <h2>Weekly results</h2>
+      <div class="hint" id="weeklyHint"></div>
+    </div>
+    <div id="weeklyResultsList"></div>
+  </section>
+
+  <!-- ============ ADMIN ============ -->
+  <section id="panelAdmin" class="tab-panel hidden" role="tabpanel" aria-labelledby="tabBtnAdmin">
+    <div id="pinGate" style="margin-top:32px;"></div>
+    <div id="adminArea" class="hidden"></div>
+  </section>
+
+  <footer class="site-footer">
+    <span id="lastSynced">Scores not yet synced.</span>
+    <span>Commissioner controls are under the Admin tab</span>
+  </footer>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="js/firebase-config.js"></script>
+<script src="js/teams.js"></script>
+<script src="js/core.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

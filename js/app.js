@@ -88,8 +88,8 @@ function renderRosters(players, assignments, weeklyResults, week) {
         const r = (weeklyResults[w]?.results || {})[abbr];
         if (r) dots.push(`<span class="dot ${r.toLowerCase()}"></span>`);
       }
-      return `<div class="team-chip">
-        <span class="abbr">${abbr} — ${TEAM_BY_ABBR[abbr]?.name || abbr}</span>
+      return `<div class="team-chip" title="${TEAM_BY_ABBR[abbr]?.name || abbr}">
+        <span class="abbr">${abbr}</span>
         <span class="result-dots">${dots.join("")}</span>
       </div>`;
     }).join("");

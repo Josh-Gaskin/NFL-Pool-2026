@@ -89,7 +89,7 @@ function renderRosters(players, assignments, weeklyResults, week) {
         if (r) dots.push(`<span class="dot ${r.toLowerCase()}"></span>`);
       }
       return `<div class="team-chip" title="${TEAM_BY_ABBR[abbr]?.name || abbr}">
-        <span class="abbr">${abbr}</span>
+        <span class="abbr"><img class="team-logo small" src="${teamLogoUrl(abbr)}" alt="" onerror="this.style.display='none'">${abbr}</span>
         <span class="result-dots">${dots.join("")}</span>
       </div>`;
     }).join("");
@@ -104,7 +104,7 @@ function renderUnused(players, assignments, week) {
   const el = document.getElementById("unusedPool");
   const unused = unusedTeams(players, assignments, week).sort();
   el.innerHTML = unused.length
-    ? unused.map(abbr => `<div class="unused-chip">${abbr} — ${TEAM_BY_ABBR[abbr]?.name || abbr}</div>`).join("")
+    ? unused.map(abbr => `<div class="unused-chip"><img class="team-logo small" src="${teamLogoUrl(abbr)}" alt="" onerror="this.style.display='none'">${abbr} — ${TEAM_BY_ABBR[abbr]?.name || abbr}</div>`).join("")
     : '<div class="empty-note">All teams are currently assigned.</div>';
 }
 
@@ -186,11 +186,11 @@ async function loadWeeklyTab() {
           return `
             <div class="game-row">
               <div class="game-team ${awayWin ? 'winner' : ''}">
-                <span class="name">${g.away || '—'}${awayOwner ? ` <span class="owner-tag">(${awayOwner})</span>` : ''}</span>
+                <span class="name"><img class="team-logo small" src="${g.away ? teamLogoUrl(g.away) : ''}" alt="" onerror="this.style.display='none'">${g.away || '—'}${awayOwner ? ` <span class="owner-tag">(${awayOwner})</span>` : ''}</span>
               </div>
               <div class="game-score">${g.final ? `${g.awayScore}–${g.homeScore}` : (g.status || 'Scheduled')}</div>
               <div class="game-team right ${homeWin ? 'winner' : ''}">
-                <span class="name">${g.home || '—'}${homeOwner ? ` <span class="owner-tag">(${homeOwner})</span>` : ''}</span>
+                <span class="name">${g.home || '—'}${homeOwner ? ` <span class="owner-tag">(${homeOwner})</span>` : ''}<img class="team-logo small" src="${g.home ? teamLogoUrl(g.home) : ''}" alt="" onerror="this.style.display='none'"></span>
               </div>
             </div>`;
         }).join("");

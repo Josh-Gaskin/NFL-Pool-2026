@@ -37,3 +37,10 @@ const NFL_TEAMS = [
 ];
 
 const TEAM_BY_ABBR = Object.fromEntries(NFL_TEAMS.map(t => [t.abbr, t]));
+
+// ESPN's public CDN for team logos — same source this site already pulls
+// scores from. We're linking to their hosted images, not recreating any
+// team artwork ourselves.
+function teamLogoUrl(abbr) {
+  return `https://a.espncdn.com/i/teamlogos/nfl/500/${abbr.toLowerCase()}.png`;
+}

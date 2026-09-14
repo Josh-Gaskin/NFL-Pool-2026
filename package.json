@@ -1,0 +1,10 @@
+{
+  "name": "nfl-pool-sync",
+  "private": true,
+  "scripts": {
+    "sync": "node scripts/sync-scores.js"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.1.0"
+  }
+}

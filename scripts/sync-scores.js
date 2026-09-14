@@ -71,35 +71,46 @@ async function main() {
   initAdmin();
   const db = admin.firestore();
 
-  // Ask ESPN what week it currently thinks we're in (no week/year params = "now").
+  // Use ESPN's sense of "now" just to get the season year reliably
+  // (works whether we're mid-season or right at a season boundary).
   const nowData = await fetchScoreboard();
-  const detectedWeek = nowData.week?.number;
   const seasonYear = nowData.season?.year;
 
-  if (!detectedWeek) {
-    console.log("Could not detect the current NFL week from ESPN — skipping this run.");
-    return;
-  }
-  console.log(`ESPN reports current week as ${detectedWeek} (season ${seasonYear}).`);
-
-  // Sync this week and the one before it — catches Monday night games that
-  // finalize right around when ESPN flips its "current week" pointer over.
-  const weeksToSync = detectedWeek > 1 ? [detectedWeek - 1, detectedWeek] : [detectedWeek];
-  for (const w of weeksToSync) {
-    await syncWeek(db, w, seasonYear);
-  }
-
-  // Advance the pool's "current week" to match, but never move it backwards —
-  // the commissioner may have deliberately set it ahead of ESPN's number.
   const metaRef = db.collection("meta").doc("pool");
   const metaSnap = await metaRef.get();
-  const currentWeek = metaSnap.exists ? (metaSnap.data().currentWeek || 1) : 1;
-  const update = { lastAutoSyncAt: admin.firestore.FieldValue.serverTimestamp() };
-  if (detectedWeek > currentWeek) {
-    update.currentWeek = detectedWeek;
-    console.log(`Advancing pool's current week from ${currentWeek} to ${detectedWeek}.`);
+  let currentWeek = metaSnap.exists ? (metaSnap.data().currentWeek || 1) : 1;
+  console.log(`Pool's current week is ${currentWeek} (season ${seasonYear}).`);
+
+  // Always resync the currently displayed week — catches any games that
+  // finished or updated since the last run.
+  await syncWeek(db, currentWeek, seasonYear);
+
+  // Only roll the displayed week forward once the NEXT week's first game
+  // has actually kicked off — not just because ESPN's own "current week"
+  // pointer has flipped over, which can happen earlier than that.
+  const nextWeek = currentWeek + 1;
+  const nextData = await fetchScoreboard(nextWeek, seasonYear);
+  const kickoffs = (nextData.events || [])
+    .map(e => (e.date ? new Date(e.date).getTime() : null))
+    .filter(Boolean);
+
+  if (kickoffs.length) {
+    const earliestKickoff = Math.min(...kickoffs);
+    if (Date.now() >= earliestKickoff) {
+      console.log(`Week ${nextWeek}'s first game has started — advancing the current week.`);
+      currentWeek = nextWeek;
+      await syncWeek(db, currentWeek, seasonYear);
+    } else {
+      console.log(`Week ${nextWeek} hasn't started yet (first kickoff: ${new Date(earliestKickoff).toISOString()}). Staying on week ${currentWeek}.`);
+    }
+  } else {
+    console.log(`No schedule data yet for week ${nextWeek}.`);
   }
-  await metaRef.set(update, { merge: true });
+
+  await metaRef.set(
+    { currentWeek, lastAutoSyncAt: admin.firestore.FieldValue.serverTimestamp() },
+    { merge: true }
+  );
 
   console.log("Sync complete.");
 }

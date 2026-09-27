@@ -184,6 +184,11 @@ function currentFreeAgentsNow(players, assignments) {
  * For each team, its chronological ownership intervals:
  * [{ player, startWeek, endWeek }], where endWeek is null for whichever
  * interval is still in effect (the most recent one).
+ *
+ * Consecutive assignment records for the *same* player are merged into one
+ * interval — those aren't real ownership changes, just redundant records
+ * (e.g. a correction re-entered at an earlier effective week). Only a
+ * genuine change of player starts a new interval.
  */
 function buildOwnershipIntervals(assignments) {
   const byTeam = {};
@@ -199,10 +204,16 @@ function buildOwnershipIntervals(assignments) {
       const bt = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
       return at - bt;
     });
-    result[team] = events.map((e, i) => ({
+    const merged = [];
+    for (const e of events) {
+      const last = merged[merged.length - 1];
+      if (last && last.player === e.player) continue; // redundant re-assignment, not a real change
+      merged.push(e);
+    }
+    result[team] = merged.map((e, i) => ({
       player: e.player,
       startWeek: e.effectiveWeek,
-      endWeek: i + 1 < events.length ? events[i + 1].effectiveWeek - 1 : null,
+      endWeek: i + 1 < merged.length ? merged[i + 1].effectiveWeek - 1 : null,
     }));
   }
   return result;

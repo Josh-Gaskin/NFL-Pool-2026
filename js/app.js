@@ -77,32 +77,68 @@ function renderStandings(players, assignments, weeklyResults, week) {
   `).join("");
 }
 
+function dotForWeek(team, week, playerId, ownerFn, weeklyResults) {
+  const doc = weeklyResults[week];
+  if (!doc) return { cls: "n", title: `Week ${week}: not synced yet` };
+
+  const outcome = doc.results?.[team];
+  if (outcome) {
+    const owns = ownerFn(team, week) === playerId;
+    if (owns) {
+      const map = { W: ["w", "Win"], L: ["l", "Loss"], T: ["t", "Tie"] };
+      const [cls, label] = map[outcome];
+      return { cls, title: `Week ${week}: ${label}` };
+    }
+    return { cls: "n", title: `Week ${week}: result not on your record` };
+  }
+
+  const games = doc.games || [];
+  const played = games.some(g => g.home === team || g.away === team);
+  if (games.length && !played) return { cls: "n", title: `Week ${week}: Bye` };
+  return { cls: "n", title: `Week ${week}: not played yet` };
+}
+
 function renderRosters(players, assignments, weeklyResults, week) {
   const el = document.getElementById("rosters");
-  const rosters = currentRosters(players, assignments, week);
+  const ownerFn = buildOwnershipResolver(assignments);
+
+  const renderRow = (entry, playerId) => {
+    const dots = [];
+    for (let w = 1; w <= week; w++) {
+      const d = dotForWeek(entry.team, w, playerId, ownerFn, weeklyResults);
+      dots.push(`<span class="dot ${d.cls}" title="${d.title}"></span>`);
+    }
+    const rangeLabel = entry.endWeek
+      ? `<span class="week-range">wks ${entry.startWeek}–${entry.endWeek}</span>`
+      : (entry.startWeek > 1 ? `<span class="week-range">since wk ${entry.startWeek}</span>` : "");
+    return `<div class="team-history-row">
+      <div class="team-chip" title="${TEAM_BY_ABBR[entry.team]?.name || entry.team}">
+        <span class="abbr"><img class="team-logo small" src="${teamLogoUrl(entry.team)}" alt="" onerror="this.style.display='none'">${entry.team}</span>
+        ${rangeLabel}
+      </div>
+      <div class="dot-strip">${dots.join("")}</div>
+    </div>`;
+  };
+
   el.innerHTML = players.map(p => {
-    const teams = (rosters[p.id] || []).sort();
-    const chips = teams.map(abbr => {
-      const dots = [];
-      for (let w = 1; w <= week; w++) {
-        const r = (weeklyResults[w]?.results || {})[abbr];
-        if (r) dots.push(`<span class="dot ${r.toLowerCase()}"></span>`);
-      }
-      return `<div class="team-chip" title="${TEAM_BY_ABBR[abbr]?.name || abbr}">
-        <span class="abbr"><img class="team-logo small" src="${teamLogoUrl(abbr)}" alt="" onerror="this.style.display='none'">${abbr}</span>
-        <span class="result-dots">${dots.join("")}</span>
-      </div>`;
-    }).join("");
+    const { current, previous } = playerTeamHistory(p.id, assignments);
+    const currentHtml = current.length
+      ? current.sort((a, b) => a.team.localeCompare(b.team)).map(e => renderRow(e, p.id)).join("")
+      : '<div class="empty-note">No teams assigned yet.</div>';
+    const previousHtml = previous.length
+      ? `<hr class="roster-divider">` + previous.sort((a, b) => a.startWeek - b.startWeek).map(e => renderRow(e, p.id)).join("")
+      : "";
     return `<div class="roster-card">
       <h3>${p.name}</h3>
-      <div class="team-chip-list">${chips || '<div class="empty-note">No teams assigned yet.</div>'}</div>
+      ${currentHtml}
+      ${previousHtml}
     </div>`;
   }).join("");
 }
 
-function renderUnused(players, assignments, week) {
+function renderUnused(players, assignments) {
   const el = document.getElementById("unusedPool");
-  const unused = unusedTeams(players, assignments, week).sort();
+  const unused = currentFreeAgentsNow(players, assignments).sort();
   el.innerHTML = unused.length
     ? unused.map(abbr => `<div class="unused-chip"><img class="team-logo small" src="${teamLogoUrl(abbr)}" alt="" onerror="this.style.display='none'">${abbr} — ${TEAM_BY_ABBR[abbr]?.name || abbr}</div>`).join("")
     : '<div class="empty-note">All teams are currently assigned.</div>';
@@ -138,7 +174,7 @@ async function loadStandingsTab() {
 
     renderStandings(players, assignments, weeklyResults, week);
     renderRosters(players, assignments, weeklyResults, week);
-    renderUnused(players, assignments, week);
+    renderUnused(players, assignments);
     renderTicker(transactions);
 
     if (meta.lastSyncedAt) {
@@ -382,7 +418,7 @@ async function renderAdmin() {
 }
 
 function renderRosterAssignment(players, week) {
-  const rosters = currentRosters(players, ADMIN_STATE.assignments, week);
+  const rosters = currentRostersNow(players, ADMIN_STATE.assignments);
   return `
     <div class="admin-card">
       <h2>Team assignments</h2>
@@ -414,7 +450,7 @@ function renderSwapForm(players, week) {
   return `
     <div class="admin-card">
       <h2>Swap a team</h2>
-      <p class="tx-remaining">Swap one of a player's teams for one currently unused. Counts as 1 transaction for that player.</p>
+      <p class="tx-remaining">Swap one of a player's teams for one currently unused. The roster updates immediately, but points from the new team don't count for this player until next week — this week's results (played or not) still belong to whoever held the team before the swap. Counts as 1 transaction for that player.</p>
       <div class="row">
         <div class="field">
           <label for="swapPlayer">Player</label>
@@ -429,8 +465,8 @@ function renderSwapForm(players, week) {
           <select id="swapIn"></select>
         </div>
         <div class="field">
-          <label for="swapWeek">Effective week</label>
-          <input type="number" id="swapWeek" min="1" max="22" value="${week}">
+          <label for="swapWeek">Points count from week</label>
+          <input type="number" id="swapWeek" min="1" max="22" value="${week + 1}">
         </div>
       </div>
       <button id="swapBtn">Record swap</button>
@@ -443,7 +479,7 @@ function renderTradeForm(players, week) {
   return `
     <div class="admin-card">
       <h2>Trade between two players</h2>
-      <p class="tx-remaining">Each player gives up one team and receives the other's. Counts as 1 transaction for each.</p>
+      <p class="tx-remaining">Each player gives up one team and receives the other's. Rosters update immediately, but points from the newly-received team don't count for either player until next week. Counts as 1 transaction for each.</p>
       <div class="row">
         <div class="field">
           <label for="tradeP1">Player A</label>
@@ -465,8 +501,8 @@ function renderTradeForm(players, week) {
         </div>
       </div>
       <div class="field" style="max-width:160px;">
-        <label for="tradeWeek">Effective week</label>
-        <input type="number" id="tradeWeek" min="1" max="22" value="${week}">
+        <label for="tradeWeek">Points count from week</label>
+        <input type="number" id="tradeWeek" min="1" max="22" value="${week + 1}">
       </div>
       <button id="tradeBtn">Record trade</button>
       <div id="tradeStatus"></div>
@@ -550,8 +586,8 @@ function attachAdminHandlers(players, week) {
   const swapOutSel = document.getElementById("swapOut");
   const swapInSel = document.getElementById("swapIn");
   if (swapPlayerSel) {
-    const rosters = currentRosters(players, ADMIN_STATE.assignments, week);
-    const unused = unusedTeams(players, ADMIN_STATE.assignments, week).sort();
+    const rosters = currentRostersNow(players, ADMIN_STATE.assignments);
+    const unused = currentFreeAgentsNow(players, ADMIN_STATE.assignments).sort();
     const refreshOut = () => { swapOutSel.innerHTML = teamOptions((rosters[swapPlayerSel.value] || []).sort()); };
     swapInSel.innerHTML = teamOptions(unused);
     swapPlayerSel.addEventListener("change", refreshOut);
@@ -561,7 +597,7 @@ function attachAdminHandlers(players, week) {
       const player = swapPlayerSel.value;
       const teamOut = swapOutSel.value;
       const teamIn = swapInSel.value;
-      const effectiveWeek = Number(document.getElementById("swapWeek").value) || week;
+      const effectiveWeek = Number(document.getElementById("swapWeek").value) || (week + 1);
       const used = txUsedByPlayer(player);
       if (used >= MAX_TRANSACTIONS) {
         showStatus("swapStatus", `${players.find(p=>p.id===player)?.name} has already used all ${MAX_TRANSACTIONS} transactions.`, false);
@@ -593,7 +629,7 @@ function attachAdminHandlers(players, week) {
   const tp1 = document.getElementById("tradeP1");
   const tp2 = document.getElementById("tradeP2");
   if (tp1 && tp2) {
-    const rosters = currentRosters(players, ADMIN_STATE.assignments, week);
+    const rosters = currentRostersNow(players, ADMIN_STATE.assignments);
     const t1Sel = document.getElementById("tradeP1Team");
     const t2Sel = document.getElementById("tradeP2Team");
     const refresh1 = () => { t1Sel.innerHTML = teamOptions((rosters[tp1.value] || []).sort()); };
@@ -605,7 +641,7 @@ function attachAdminHandlers(players, week) {
     document.getElementById("tradeBtn").addEventListener("click", async () => {
       const playerA = tp1.value, playerB = tp2.value;
       const teamA = t1Sel.value, teamB = t2Sel.value;
-      const effectiveWeek = Number(document.getElementById("tradeWeek").value) || week;
+      const effectiveWeek = Number(document.getElementById("tradeWeek").value) || (week + 1);
       if (playerA === playerB) {
         showStatus("tradeStatus", "Pick two different players.", false);
         return;
